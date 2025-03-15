@@ -3,11 +3,14 @@ package main
 import (
 	lflag "flag"
 	los "os"
+	lsignal "os/signal"
 
 	lzap "go.uber.org/zap"
 	lzapcore "go.uber.org/zap/zapcore"
 
-	lsconfig "github.com/vngcloud/reforged-labs/configuration/api-service"
+	lsapiservice "github.com/cuongpiger/reforged-labs/api-service"
+	lsconfig "github.com/cuongpiger/reforged-labs/configuration/api-service"
+	lsversion "github.com/cuongpiger/reforged-labs/version"
 )
 
 var (
@@ -64,6 +67,35 @@ func main() {
 	lzap.L().Info("Configuration file loaded")
 
 	// Start the new server
-	lzap.L().Info("Start the server", lzap.Any("config", apiServiceConfig))
+	lzap.L().Info("Start the server")
 	apiServiceConfig.Init()
+	apiService, err := lsapiservice.NewAPIService(apiServiceConfig)
+	if err != nil {
+		lzap.L().Error("Failed to create the server", lzap.Error(err))
+		los.Exit(1)
+	}
+
+	// Warm up the server
+	lzap.L().Info("Warm up API service")
+	apiService.WarmUp()
+
+	// Signal stop service
+	lzap.L().Info("Configure signal stop service")
+	signalChan := make(chan los.Signal, 1)
+	lsignal.Notify(signalChan, los.Interrupt, los.Kill)
+	go func() {
+		lzap.S().Info("System call to stop service: ", <-signalChan)
+		if err = apiService.Stop(); err != nil {
+			lzap.L().Error("Failed to stop API service", lzap.Error(err))
+			panic(err)
+		}
+		lzap.S().Info("System call: ", <-signalChan)
+	}()
+
+	// Start the server
+	lzap.L().Info("Start API service", lzap.String("version", lsversion.Get().FullyString()))
+	if err = apiService.ServeHTTPService(); err != nil {
+		lzap.L().Error("Failed to start API service's HTTP service", lzap.Error(err))
+		panic(err)
+	}
 }

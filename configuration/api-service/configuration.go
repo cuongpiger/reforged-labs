@@ -26,7 +26,7 @@ func (s *APIServiceConfiguration) Init() {
 
 func LoadAPIServiceConfiguration(pfilePath string) (*APIServiceConfiguration, error) {
 	if len(pfilePath) < 1 {
-		pfilePath = los.Getenv("API_SERVER_CONFIG_FILE")
+		pfilePath = los.Getenv("API_SERVICE_CONFIG_FILE")
 	}
 
 	lzap.L().Info("Load configuration file", lzap.String("file_path", pfilePath))
@@ -44,6 +44,6 @@ func LoadAPIServiceConfiguration(pfilePath string) (*APIServiceConfiguration, er
 		return nil, err
 	}
 
-	lzap.L().Info("Configuration file loaded", lzap.Any("config", cfg))
+	lzap.L().Info("Configuration file loaded successfully")
 	return cfg, nil
 }
