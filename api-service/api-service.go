@@ -10,6 +10,7 @@ import (
 
 	lsconfig "github.com/cuongpiger/reforged-labs/configuration/api-service"
 	lsmdw "github.com/cuongpiger/reforged-labs/middleware"
+	lsadshdl "github.com/cuongpiger/reforged-labs/services/domain/advertisement/delivery/http"
 	lsrepo "github.com/cuongpiger/reforged-labs/services/repository"
 )
 
@@ -57,13 +58,15 @@ func (s *APIService) ServeHTTPService() error {
 
 func (s *APIService) setupMiddlewares() {
 	// Add middlewares here
-	s.router.Use(lsmdw.CheckUserIDHeader())
 	s.router.Use(lsmdw.GenerateRequestID())
 }
 
 func (s *APIService) setupRoutes(pdomains *Domains) {
 	// Add routes here
-	//lsnghdl.NewNodeGroupHandler(pdomains.nodegroup).Route(s.router.Group("api/v1/nodegroups"))
+
+	// The group of API v1
+	apiV1Group := s.router.Group("api/v1")
+	lsadshdl.NewAdvertisementHandler(pdomains.advertisement).Route(apiV1Group.Group("ads")) // ads
 }
 
 func (s *APIService) setupHealthCheckRoute() {
