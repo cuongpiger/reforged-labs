@@ -2,6 +2,10 @@
 # CMD bin path for MacOS machine
 GO_CMD ?= "/Volumes/veronica/git-cuongpiger/go-env/go-1.24.1/go1.24.1/bin/go"
 DOCKER_CMD ?= "/usr/local/bin/docker"
+TAG ?= v0.0.0
+REGISTRY ?= "docker.io/manhcuong8499"
+CONTROLLER_IMG_TAG ?= "$(REGISTRY)/reforged-labs-api-service:$(TAG)"
+
 
 # CMD bin path for Linux machine
 # GO_CMD ?= "/usr/local/go/bin/go"
@@ -10,6 +14,9 @@ DOCKER_CMD ?= "/usr/local/bin/docker"
 CURDIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 ENV_FILE ?= $(CURDIR)/hack/env
 API_SERVICE_CONFIG_FILE ?= $(CURDIR)/hack/api-service-config-file.yaml
+# Set build time variables including version details
+LDFLAGS := $(shell source ./hack/version.sh; version::ldflags)
+ARCH ?= amd64
 
 include $(ENV_FILE)
 
@@ -32,3 +39,13 @@ deploy-postgres:
 			-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 			-e POSTGRES_USER=$(POSTGRES_USER) \
 			-e POSTGRES_DB=$(POSTGRES_DB) postgres
+
+.PHONY: docker-build
+docker-build:
+	@echo "Building docker image"
+	docker build -f Dockerfile --build-arg goproxy=$(GOPROXY) --build-arg ARCH=$(ARCH) --build-arg LDFLAGS="$(LDFLAGS)" . -t $(CONTROLLER_IMG_TAG)
+
+.PHONY: docker-push
+docker-push:
+	@echo "Pushing docker image"
+	docker push $(CONTROLLER_IMG_TAG)
