@@ -1,6 +1,7 @@
 package http
 
 import (
+	lfmt "fmt"
 	lhttp "net/http"
 
 	lgin "github.com/gin-gonic/gin"
@@ -37,14 +38,23 @@ func (s *advertisementHandler) createAdvertisement() lgin.HandlerFunc {
 		}
 
 		// Call use case
+		result, err := s.advertisementUseCase.CreateAdvertisement(pctx, body)
+		if err != nil {
+			logger.Error("Create advertisement failed", lzap.Error(err))
+			pctx.PureJSON(lhttp.StatusInternalServerError, lsutil.NewResponse().
+				SetStringMessage("Create advertisement failed").
+				SetStatus(lsutil.ResponseStatusFailed).
+				GetResponse())
+			return
+		}
 
 		// Response to client
 		logger.Info("Created advertisement successfully, response to client")
 		dataResponse := &lsdto.CreateAdvertisementResponseDTO{
-			AdvertisementID: "123",
-			Status:          "queued",
-			Priority:        body.Priority,
-			CreateAt:        lsutil.Now(),
+			AdvertisementID: result.Id,
+			Status:          result.Status,
+			Priority:        result.Priority,
+			CreateAt:        lsutil.TimestampFrom(result.CreateAt),
 		}
 
 		pctx.PureJSON(lhttp.StatusCreated, lsutil.NewResponse().
@@ -72,19 +82,32 @@ func (s *advertisementHandler) getAdvertisement() lgin.HandlerFunc {
 		}
 
 		// Call use case
+		result, err := s.advertisementUseCase.GetAdvertisement(pctx, uri.AdvertisementId)
+		if err != nil {
+			logger.Error("Get advertisement failed", lzap.Error(err))
+			pctx.PureJSON(lhttp.StatusNotFound, lsutil.NewResponse().
+				SetStringMessage(lfmt.Sprintf("Advertisement with ID '%s' not found", uri.AdvertisementId)).
+				SetStatus(lsutil.ResponseStatusFailed).
+				GetResponse())
+			return
+		}
 
 		// Response to client
 		logger.Info("Get advertisement successfully, response to client")
 		dataResponse := &lsdto.GetAdvertisementResponseDTO{
-			AdvertisementID: "123",
-			Status:          "completed",
+			AdvertisementID: result.Id,
+			Status:          result.Status,
 			Analysis: lsdto.AnalysisResponseDTO{
-				EffectivenessScore:     0.8,
-				Strengths:              []string{"Strong call to action with clear incentive", "Appeals to target audience's desire for progression"},
-				ImprovementSuggestions: []string{"Consider adding social proof elements", "Highlight immediate gameplay satisfaction"},
+				EffectivenessScore:     result.Analysis.EffectivenessScore,
+				Strengths:              result.Analysis.Strengths,
+				ImprovementSuggestions: result.Analysis.ImprovementSuggestions,
 			},
-			CreatedAt:   lsutil.Now(),
-			CompletedAt: lsutil.Now(),
+			CreatedAt: lsutil.TimestampFrom(result.CreateAt),
+		}
+
+		if result.CompleteAt != nil {
+			ts := lsutil.TimestampFrom(*result.CompleteAt)
+			dataResponse.CompletedAt = &ts
 		}
 
 		pctx.PureJSON(lhttp.StatusOK, lsutil.NewResponse().

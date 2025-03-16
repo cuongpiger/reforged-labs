@@ -19,3 +19,7 @@ func (s Timestamp) MarshalJSON() ([]byte, error) {
 func Now() Timestamp {
 	return Timestamp{Time: ltime.Now()}
 }
+
+func TimestampFrom(t ltime.Time) Timestamp {
+	return Timestamp{Time: t}
+}

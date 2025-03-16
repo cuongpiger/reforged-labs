@@ -18,6 +18,7 @@ func NewAdvertisementRepository(client *lgorm.DB) IAdvertisementRepository {
 
 type IAdvertisementRepository interface {
 	CreateAdvertisement(pctx lctx.Context, pads *lsmdl.Advertisement) error
+	GetAdvertisementById(pctx lctx.Context, pid string) (*lsmdl.Advertisement, error)
 }
 
 type advertisementRepository struct {
@@ -38,4 +39,21 @@ func (s *advertisementRepository) CreateAdvertisement(pctx lctx.Context, pads *l
 
 	log.Info("Successfully created advertisement")
 	return nil
+}
+
+func (s *advertisementRepository) GetAdvertisementById(pctx lctx.Context, pid string) (*lsmdl.Advertisement, error) {
+	var (
+		log = lsutil.GetLogger(pctx)
+	)
+
+	log.Info("Getting advertisement")
+	adv := &lsmdl.Advertisement{}
+	res := s.client.Where("id = ?", pid).First(adv)
+	if res.Error != nil {
+		log.Error("Failed to get advertisement", lzap.Error(res.Error))
+		return nil, res.Error
+	}
+
+	log.Info("Successfully get advertisement")
+	return adv, nil
 }

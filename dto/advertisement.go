@@ -35,7 +35,7 @@ type (
 		Status          string              `json:"status"`
 		Analysis        AnalysisResponseDTO `json:"analysis"`
 		CreatedAt       lsutil.Timestamp    `json:"createdAt"`
-		CompletedAt     lsutil.Timestamp    `json:"completedAt,omitempty"`
+		CompletedAt     *lsutil.Timestamp   `json:"completedAt"`
 	}
 
 	AnalysisResponseDTO struct {
