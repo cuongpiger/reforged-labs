@@ -135,7 +135,7 @@ func (s *APIService) setupTaskQueue(pctx lctx.Context, prepo lsrepo.IRepository)
 			}
 
 			// Dispatch the task to the worker pool
-			lzap.L().Info("Dispatch the advertisement to the worker pool", lzap.String("advertisementId", task.GetId()))
+			lzap.L().Info("Dispatch the advertisement to the worker pool", lzap.String("advertisementId", task.GetId()), lzap.Int("priority", task.GetPriority()))
 			request := lsdispatcher.Request{
 				Task: task,
 				Handler: func() error {
