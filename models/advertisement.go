@@ -9,6 +9,7 @@ type Advertisement struct {
 	Analysis   Analysis    `json:"analysis" gorm:"serializer:json"` // Store as JSON in DB
 	CreateAt   ltime.Time  `json:"createAt"`
 	CompleteAt *ltime.Time `json:"completeAt"`
+	Retry      int         `json:"retry"`
 }
 
 type Analysis struct {

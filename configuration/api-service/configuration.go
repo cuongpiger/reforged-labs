@@ -15,6 +15,11 @@ type APIServiceConfiguration struct {
 		Database struct {
 			URI string `yaml:"uri,omitempty"`
 		} `yaml:"database,omitempty"`
+
+		WorkerPool struct {
+			Amount int `yaml:"amount,omitempty"`
+			Buffer int `yaml:"buffer,omitempty"`
+		} `yaml:"worker_pool,omitempty"`
 	} `yaml:"api_service,omitempty"`
 }
 

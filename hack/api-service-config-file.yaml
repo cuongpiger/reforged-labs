@@ -8,3 +8,6 @@ api_service:
   host: "0.0.0.0"  # The HOST to run the API service
   database:
     uri: "postgres://reforged-admin:reforged-admin-password@localhost:5432/reforged-api-service"
+  worker_pool:
+    amount: 10
+    buffer: 2000

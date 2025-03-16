@@ -19,6 +19,7 @@ func NewAdvertisementRepository(client *lgorm.DB) IAdvertisementRepository {
 type IAdvertisementRepository interface {
 	CreateAdvertisement(pctx lctx.Context, pads *lsmdl.Advertisement) error
 	GetAdvertisementById(pctx lctx.Context, pid string) (*lsmdl.Advertisement, error)
+	UpdateAdvertisement(pctx lctx.Context, pads *lsmdl.Advertisement) error
 }
 
 type advertisementRepository struct {
@@ -43,7 +44,7 @@ func (s *advertisementRepository) CreateAdvertisement(pctx lctx.Context, pads *l
 
 func (s *advertisementRepository) GetAdvertisementById(pctx lctx.Context, pid string) (*lsmdl.Advertisement, error) {
 	var (
-		log = lsutil.GetLogger(pctx)
+		log = lsutil.GetLogger(pctx).With(lzap.String("advertisementId", pid))
 	)
 
 	log.Info("Getting advertisement")
@@ -56,4 +57,20 @@ func (s *advertisementRepository) GetAdvertisementById(pctx lctx.Context, pid st
 
 	log.Info("Successfully get advertisement")
 	return adv, nil
+}
+
+func (s *advertisementRepository) UpdateAdvertisement(pctx lctx.Context, pads *lsmdl.Advertisement) error {
+	var (
+		log = lsutil.GetLogger(pctx).With(lzap.String("advertisementId", pads.Id))
+	)
+
+	log.Info("Updating advertisement")
+	res := s.client.Save(pads)
+	if res.Error != nil {
+		log.Error("Failed to update advertisement", lzap.Error(res.Error))
+		return res.Error
+	}
+
+	log.Info("Successfully updated advertisement")
+	return nil
 }

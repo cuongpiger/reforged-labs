@@ -29,14 +29,14 @@ func (s *TaskQueue) PushTask(task interface{}) {
 	s.mu.Unlock()
 }
 
-func (tq *TaskQueue) PopTask() lstask.Task {
-	tq.mu.Lock()
-	defer tq.mu.Unlock()
+func (s *TaskQueue) PopTask() lstask.Task {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	for len(tq.pq) == 0 {
-		tq.cond.Wait() // Wait until a task is available
+	for len(s.pq) == 0 {
+		s.cond.Wait() // Wait until a task is available
 	}
 
-	task := lheap.Pop(&tq.pq).(lstask.Task)
+	task := lheap.Pop(&s.pq).(lstask.Task)
 	return task
 }

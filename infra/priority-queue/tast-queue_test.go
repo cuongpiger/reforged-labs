@@ -23,6 +23,10 @@ func (t *Task) SetIndex(i int) {
 	t.Index = i
 }
 
+func (t *Task) GetData() interface{} {
+	return t.Content
+}
+
 func (t *Task) Clone() lstask.Task {
 	return &Task{
 		Id:       t.Id,
@@ -32,7 +36,7 @@ func (t *Task) Clone() lstask.Task {
 	}
 }
 
-func (t *Task) ID() string {
+func (t *Task) GetId() string {
 	return t.Id
 }
 
@@ -84,7 +88,6 @@ func TestAddMultipleTasks(t *ltesting.T) {
 			t.Error("TaskQueue.PopTask() should return a non-nil task")
 		}
 
-		task.Do()
-		lfmt.Printf("> Task ID: %s\n", task.ID())
+		lfmt.Printf("> Task ID: %s\n")
 	}
 }

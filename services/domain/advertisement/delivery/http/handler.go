@@ -8,16 +8,21 @@ import (
 	lzap "go.uber.org/zap"
 
 	lsdto "github.com/cuongpiger/reforged-labs/dto"
+	lsqueue "github.com/cuongpiger/reforged-labs/infra/priority-queue"
 	lsadsuc "github.com/cuongpiger/reforged-labs/services/domain/advertisement/usecase"
 	lsutil "github.com/cuongpiger/reforged-labs/utils"
 )
 
 type advertisementHandler struct {
 	advertisementUseCase lsadsuc.IAdvertisementUseCase
+	taskQueue            *lsqueue.TaskQueue
 }
 
-func NewAdvertisementHandler(padsUc lsadsuc.IAdvertisementUseCase) *advertisementHandler {
-	return &advertisementHandler{advertisementUseCase: padsUc}
+func NewAdvertisementHandler(padsUc lsadsuc.IAdvertisementUseCase, ptaskQueue *lsqueue.TaskQueue) *advertisementHandler {
+	return &advertisementHandler{
+		advertisementUseCase: padsUc,
+		taskQueue:            ptaskQueue,
+	}
 }
 
 func (s *advertisementHandler) createAdvertisement() lgin.HandlerFunc {
@@ -38,7 +43,7 @@ func (s *advertisementHandler) createAdvertisement() lgin.HandlerFunc {
 		}
 
 		// Call use case
-		result, err := s.advertisementUseCase.CreateAdvertisement(pctx, body)
+		result, err := s.advertisementUseCase.CreateAdvertisement(pctx, body, s.taskQueue)
 		if err != nil {
 			logger.Error("Create advertisement failed", lzap.Error(err))
 			pctx.PureJSON(lhttp.StatusInternalServerError, lsutil.NewResponse().

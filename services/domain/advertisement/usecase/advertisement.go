@@ -8,11 +8,12 @@ import (
 	luuid "github.com/google/uuid"
 
 	lsdto "github.com/cuongpiger/reforged-labs/dto"
+	lsqueue "github.com/cuongpiger/reforged-labs/infra/priority-queue"
 	lsmdl "github.com/cuongpiger/reforged-labs/models"
 	lsutil "github.com/cuongpiger/reforged-labs/utils"
 )
 
-func (s *advertisementUseCase) CreateAdvertisement(ctx lctx.Context, preq *lsdto.CreateAdvertisementRequestDTO) (*lsmdl.Advertisement, error) {
+func (s *advertisementUseCase) CreateAdvertisement(ctx lctx.Context, preq *lsdto.CreateAdvertisementRequestDTO, ptaskQueue *lsqueue.TaskQueue) (*lsmdl.Advertisement, error) {
 	var (
 		log = lsutil.GetLogger(ctx)
 	)
@@ -26,10 +27,14 @@ func (s *advertisementUseCase) CreateAdvertisement(ctx lctx.Context, preq *lsdto
 		CreateAt: ltime.Now(),
 	}
 
+	log.Info("Save advertisement into database")
 	if err := s.repo.NewAdvertisementRepo().CreateAdvertisement(ctx, adv); err != nil {
 		log.Error("Create advertisement failed", lzap.Error(err))
 		return nil, err
 	}
+
+	log.Info("Push advertisement into priority queue")
+	ptaskQueue.PushTask(NewAdvertisementTask(adv))
 
 	log.Info("Create advertisement success")
 	return adv, nil

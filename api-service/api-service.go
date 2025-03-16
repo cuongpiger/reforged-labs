@@ -11,18 +11,22 @@ import (
 
 	lsconfig "github.com/cuongpiger/reforged-labs/configuration/api-service"
 	lspostgres "github.com/cuongpiger/reforged-labs/infra/postgres"
+	lsqueue "github.com/cuongpiger/reforged-labs/infra/priority-queue"
+	lsdispatcher "github.com/cuongpiger/reforged-labs/infra/worker-pool"
 	lsmdw "github.com/cuongpiger/reforged-labs/middleware"
 	lsmdl "github.com/cuongpiger/reforged-labs/models"
 	lsadshdl "github.com/cuongpiger/reforged-labs/services/domain/advertisement/delivery/http"
 	lsadsuc "github.com/cuongpiger/reforged-labs/services/domain/advertisement/usecase"
 	lsrepo "github.com/cuongpiger/reforged-labs/services/repository"
+	lsutil "github.com/cuongpiger/reforged-labs/utils"
 )
 
 func NewAPIService(pconfig *lsconfig.APIServiceConfiguration) (*APIService, error) {
 	router := lgin.New()
 	return &APIService{
-		router: router,
-		config: pconfig,
+		router:    router,
+		config:    pconfig,
+		taskQueue: lsqueue.NewTaskQueue(),
 	}, nil
 }
 
@@ -30,6 +34,8 @@ type APIService struct {
 	router     *lgin.Engine
 	httpServer *lhttp.Server
 	config     *lsconfig.APIServiceConfiguration
+	taskQueue  *lsqueue.TaskQueue
+	dispatcher lsdispatcher.Dispatcher
 }
 
 func (s *APIService) WarmUp() error {
@@ -48,11 +54,14 @@ func (s *APIService) WarmUp() error {
 	s.setupMiddlewares()
 	s.setupRoutes(domains)
 	s.setupHealthCheckRoute()
+	s.setupWorkerPool(s.config.APIService.WorkerPool.Buffer, s.config.APIService.WorkerPool.Amount)
+	s.setupTaskQueue(ctx, repo)
 	return nil
 }
 
 func (s *APIService) Stop() error {
 	lzap.L().Info("Stop the server")
+	s.dispatcher.Stop()
 	return nil
 }
 
@@ -77,7 +86,7 @@ func (s *APIService) setupRoutes(pdomains *Domains) {
 
 	// The group of API v1
 	apiV1Group := s.router.Group("api/v1")
-	lsadshdl.NewAdvertisementHandler(pdomains.advertisement).Route(apiV1Group.Group("ads")) // ads
+	lsadshdl.NewAdvertisementHandler(pdomains.advertisement, s.taskQueue).Route(apiV1Group.Group("ads")) // ads
 }
 
 func (s *APIService) setupHealthCheckRoute() {
@@ -106,4 +115,44 @@ func (s *APIService) setupDatabase(puri string) (*lgorm.DB, error) {
 	}
 
 	return client, nil
+}
+
+func (s *APIService) setupWorkerPool(pbufferSize, pamountOfWorkers int) {
+	s.dispatcher = lsdispatcher.NewDispatcher(pbufferSize)
+	for i := 0; i < pamountOfWorkers; i++ {
+		s.dispatcher.LaunchWorker(
+			lsdispatcher.NewAdvertisementWorker(i))
+	}
+}
+
+func (s *APIService) setupTaskQueue(pctx lctx.Context, prepo lsrepo.IRepository) {
+	// Add tasks here
+	lsutil.GoExecute(func() {
+		for {
+			task := s.taskQueue.PopTask()
+			if task == nil {
+				continue
+			}
+
+			// Dispatch the task to the worker pool
+			lzap.L().Info("Dispatch the advertisement to the worker pool", lzap.String("advertisementId", task.GetId()))
+			request := lsdispatcher.Request{
+				Task: task,
+				Handler: func() error {
+					chain := lsadsuc.InQueueTaskChain{
+						Repository: prepo,
+						NextChain: &lsadsuc.ProcessingTaskChain{
+							Repository: prepo,
+							NextChain: &lsadsuc.CompletedTaskChain{
+								Repository: prepo,
+							},
+						},
+					}
+
+					return chain.Next(pctx, task)
+				},
+			}
+			s.dispatcher.MakeRequest(request)
+		}
+	})
 }

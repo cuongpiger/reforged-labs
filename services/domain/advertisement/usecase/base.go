@@ -4,12 +4,13 @@ import (
 	lctx "context"
 
 	lsdto "github.com/cuongpiger/reforged-labs/dto"
+	lsqueue "github.com/cuongpiger/reforged-labs/infra/priority-queue"
 	lsmdl "github.com/cuongpiger/reforged-labs/models"
 	lsrepo "github.com/cuongpiger/reforged-labs/services/repository"
 )
 
 type IAdvertisementUseCase interface {
-	CreateAdvertisement(ctx lctx.Context, preq *lsdto.CreateAdvertisementRequestDTO) (*lsmdl.Advertisement, error)
+	CreateAdvertisement(ctx lctx.Context, preq *lsdto.CreateAdvertisementRequestDTO, ptaskQueue *lsqueue.TaskQueue) (*lsmdl.Advertisement, error)
 	GetAdvertisement(ctx lctx.Context, pid string) (*lsmdl.Advertisement, error)
 }
 
