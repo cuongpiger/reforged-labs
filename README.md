@@ -8,8 +8,8 @@
 2. [Deployment](#deployment)
 3. [Project details](#project-details)
 4. [API details](#api-details)<br>
-  4.1. [POST - `/api/v1/ads`](#post---apiv1ads-create-a-new-advertisement)<br>
-  4.2. [GET - `/api/v1/ads/:ads_id`](#get---apiv1adsads_id-get-an-advertisement-by-id)
+   4.1. [POST - `/api/v1/ads`](#post---apiv1ads-create-a-new-advertisement)<br>
+   4.2. [GET - `/api/v1/ads/:ads_id`](#get---apiv1adsads_id-get-an-advertisement-by-id)
 
 <hr>
 
@@ -54,21 +54,51 @@
     - The `usecase` layer contains the application logic.
     - The `delivery` layer contains the API logic.
 
-
 # API details
+
 ## POST - `/api/v1/ads`: Create a new advertisement
+
 - This feature workflow includes 2 parts:
-  - A memory priority queue to store the advertisement data. Assume that advertisement with lower priority value will be processed first.
-    - To implement this feature, I use the `container/heap` package in GoLang.
-    - GoLang Mutex is used to lock the queue when adding or removing an item.
-    - Signal is used to notify the worker when a new item is added to the queue.
-  - Worker pool to process the advertisement data.
-    - The worker pool is implemented using GoLang goroutines.
-    - The worker pool is started when the application starts.
-    - The worker pool will process the advertisement data whenever a new item is added to the queue.
-    - The worker pool will process the advertisement data based on the priority value.
-    - I use two design patterns: `Chain` and `WorkerPool` to implement this feature.
+    - A memory priority queue to store the advertisement data. Assume that advertisement with lower priority value will
+      be processed first.
+        - To implement this feature, I use the `container/heap` package in GoLang.
+        - GoLang Mutex is used to lock the queue when adding or removing an item.
+        - Signal is used to notify the worker when a new item is added to the queue.
+    - Worker pool to process the advertisement data.
+        - The worker pool is implemented using GoLang goroutines.
+        - The worker pool is started when the application starts.
+        - The worker pool will process the advertisement data whenever a new item is added to the queue.
+        - The worker pool will process the advertisement data based on the priority value.
+        - I use two design patterns: `Chain` and `WorkerPool` to implement this feature.
+
+- Example using `curl`:
+  ```bash
+  curl --location 'http://127.0.0.1:8000/api/v1/ads' \
+  --header 'Content-Type: application/json' \
+  --data '{
+  "title": "Dragon Kingdom: Rise to Power",
+  "description": "Build your kingdom, train your dragons, and conquer new territories!",
+  "genre": "Strategy",
+  "targetAudience": [
+  "18-34",
+  "Strategy Gamers"
+  ],
+  "visualElements": [
+  "Dragons",
+  "Castle",
+  "Battle Scenes"
+  ],
+  "callToAction": "Download Now & Claim 1000 Free Gems!",
+  "duration": 30,
+  "priority": 2
+  }'
+  ```
 
 ## GET - `/api/v1/ads/:ads_id`: Get an advertisement by ID
+
 - The workflow simply retrieves the advertisement data from PostgreSQL database by advertisement ID.
+- Example using `curl`:
+    ```bash
+     curl --location 'http://127.0.0.1:8000/api/v1/ads/ads-9e4c9414-4cdb-4fb6-929e-6111c3b83ee9'
+    ```
 
