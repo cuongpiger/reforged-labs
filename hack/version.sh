@@ -1,4 +1,17 @@
 #!/usr/bin/env bash
+# Copyright 2020 The Kubernetes Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# 	http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 set -o errexit
 set -o nounset
@@ -46,15 +59,8 @@ version::get_version_vars() {
         # the "major" and "minor" versions and whether this is the exact tagged
         # version or whether the tree is between two tagged versions.
         if [[ "${GIT_VERSION}" =~ ^v([0-9]+)\.([0-9]+)(\.[0-9]+)?([-].*)?([+].*)?$ ]]; then
-            GIT_MAJOR=${BASH_REMATCH[1]}
-            GIT_MINOR=${BASH_REMATCH[2]}
-        fi
-
-        # If GIT_VERSION is not a valid Semantic Version, then refuse to build.
-        if ! [[ "${GIT_VERSION}" =~ ^v([0-9]+)\.([0-9]+)(\.[0-9]+)?(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
-            echo "GIT_VERSION should be a valid Semantic Version. Current value: ${GIT_VERSION}"
-            echo "Please see more details here: https://semver.org"
-            exit 1
+            GIT_MAJOR=$(echo ${GIT_VERSION} | grep -oP '^v\K\d+')
+            GIT_MINOR=$(echo ${GIT_VERSION} | grep -oP 'v\d+\.\K\d+')
         fi
     fi
 

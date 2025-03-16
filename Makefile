@@ -21,6 +21,11 @@ ARCH ?= amd64
 include $(ENV_FILE)
 
 
+.PHONY: check-ldflags
+check-ldflags:
+	@echo $(LDFLAGS)
+
+
 .PHONY: run-api-service
 run-api-service:
 	@echo "Running API service at localhost"
