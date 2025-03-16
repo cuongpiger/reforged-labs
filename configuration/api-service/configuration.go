@@ -11,6 +11,10 @@ type APIServiceConfiguration struct {
 	APIService struct {
 		Port int    `yaml:"port,omitempty"`
 		Host string `yaml:"host,omitempty"`
+
+		Database struct {
+			URI string `yaml:"uri,omitempty"`
+		} `yaml:"database,omitempty"`
 	} `yaml:"api_service,omitempty"`
 }
 

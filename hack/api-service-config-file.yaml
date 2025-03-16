@@ -6,3 +6,5 @@
 api_service:
   port: 8000       # The PORT to run the API service
   host: "0.0.0.0"  # The HOST to run the API service
+  database:
+    uri: "postgres://reforged-admin:reforged-admin-password@localhost:5432/reforged-api-service"

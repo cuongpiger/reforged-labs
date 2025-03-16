@@ -1,2 +1,0 @@
-export APP_ENV=development # development, production
-export GIN_MODE=release  # debug, release, test

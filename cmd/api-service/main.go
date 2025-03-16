@@ -77,7 +77,10 @@ func main() {
 
 	// Warm up the server
 	lzap.L().Info("Warm up API service")
-	apiService.WarmUp()
+	if err = apiService.WarmUp(); err != nil {
+		lzap.L().Error("Failed to warm up API service", lzap.Error(err))
+		los.Exit(1)
+	}
 
 	// Signal stop service
 	lzap.L().Info("Configure signal stop service")

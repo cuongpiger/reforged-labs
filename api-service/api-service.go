@@ -7,9 +7,12 @@ import (
 
 	lgin "github.com/gin-gonic/gin"
 	lzap "go.uber.org/zap"
+	lgorm "gorm.io/gorm"
 
 	lsconfig "github.com/cuongpiger/reforged-labs/configuration/api-service"
+	lspostgres "github.com/cuongpiger/reforged-labs/infra/postgres"
 	lsmdw "github.com/cuongpiger/reforged-labs/middleware"
+	lsmdl "github.com/cuongpiger/reforged-labs/models"
 	lsadshdl "github.com/cuongpiger/reforged-labs/services/domain/advertisement/delivery/http"
 	lsrepo "github.com/cuongpiger/reforged-labs/services/repository"
 )
@@ -31,8 +34,15 @@ type APIService struct {
 func (s *APIService) WarmUp() error {
 	ctx := lctx.Background()
 
-	repo := lsrepo.NewRepository()
-	domains := s.configureDomains(ctx, repo)
+	// Configure the database
+	db, err := s.setupDatabase(s.config.APIService.Database.URI)
+	if err != nil {
+		lzap.L().Error("Failed to configure database", lzap.Error(err))
+		return err
+	}
+
+	repo := lsrepo.NewRepository(db)
+	domains := s.setupDomains(ctx, repo)
 
 	s.setupMiddlewares()
 	s.setupRoutes(domains)
@@ -77,6 +87,20 @@ func (s *APIService) setupHealthCheckRoute() {
 	})
 }
 
-func (s *APIService) configureDomains(pctx lctx.Context, prepo lsrepo.IRepository) *Domains {
+func (s *APIService) setupDomains(pctx lctx.Context, prepo lsrepo.IRepository) *Domains {
 	return &Domains{}
+}
+
+func (s *APIService) setupDatabase(puri string) (*lgorm.DB, error) {
+	client, err := lspostgres.InitPostgreSQL(puri)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = client.AutoMigrate(&lsmdl.Advertisement{}); err != nil {
+		lzap.L().Error("Failed to auto migrate Advertisement model", lzap.Error(err))
+		return nil, err
+	}
+
+	return client, nil
 }

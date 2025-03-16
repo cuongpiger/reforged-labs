@@ -1,0 +1,9 @@
+# ENV for API service
+APP_ENV=development # development, production
+GIN_MODE=release  # debug, release, test
+
+# ENV for PostgreSQL database
+POSTGRES_USER=reforged-admin
+POSTGRES_PASSWORD=reforged-admin-password
+POSTGRES_DB=reforged-api-service
+
