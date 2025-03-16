@@ -72,7 +72,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	var wg sync.WaitGroup
-	numRequests := 100
+	numRequests := 200
 
 	for i := 0; i < numRequests; i++ {
 		wg.Add(1)
