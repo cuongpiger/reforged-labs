@@ -14,6 +14,13 @@ CONTROLLER_IMG_TAG ?= "$(REGISTRY)/reforged-labs-api-service:$(TAG)"
 CURDIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 ENV_FILE ?= $(CURDIR)/hack/env
 API_SERVICE_CONFIG_FILE ?= $(CURDIR)/hack/api-service-config-file.yaml
+
+# Setting SHELL to bash allows bash commands to be executed by recipes.
+# Options are set to exit when a recipe line exits non-zero or a piped command fails.
+SHELL = /usr/bin/env bash -o pipefail
+.SHELLFLAGS = -ec
+
+
 # Set build time variables including version details
 LDFLAGS := $(shell source ./hack/version.sh; version::ldflags)
 ARCH ?= amd64
