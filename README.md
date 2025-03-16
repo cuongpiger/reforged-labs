@@ -1,4 +1,4 @@
-# reforged-lab
+# reforged-labs
 
 <hr>
 
