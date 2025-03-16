@@ -3,7 +3,7 @@ package models
 import ltime "time"
 
 type Advertisement struct {
-	Id         int        `json:"id" gorm:"primaryKey"`
+	Id         string     `json:"id" gorm:"primaryKey"`
 	Status     string     `json:"status"`
 	Priority   int        `json:"priority"`
 	Analysis   Analysis   `json:"analysis" gorm:"serializer:json"` // Store as JSON in DB

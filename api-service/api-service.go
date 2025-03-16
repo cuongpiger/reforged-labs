@@ -14,6 +14,7 @@ import (
 	lsmdw "github.com/cuongpiger/reforged-labs/middleware"
 	lsmdl "github.com/cuongpiger/reforged-labs/models"
 	lsadshdl "github.com/cuongpiger/reforged-labs/services/domain/advertisement/delivery/http"
+	lsadsuc "github.com/cuongpiger/reforged-labs/services/domain/advertisement/usecase"
 	lsrepo "github.com/cuongpiger/reforged-labs/services/repository"
 )
 
@@ -88,7 +89,9 @@ func (s *APIService) setupHealthCheckRoute() {
 }
 
 func (s *APIService) setupDomains(pctx lctx.Context, prepo lsrepo.IRepository) *Domains {
-	return &Domains{}
+	return &Domains{
+		advertisement: lsadsuc.NewAdvertisementUseCase(prepo),
+	}
 }
 
 func (s *APIService) setupDatabase(puri string) (*lgorm.DB, error) {
