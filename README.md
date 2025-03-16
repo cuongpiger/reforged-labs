@@ -10,6 +10,8 @@
 4. [API details](#api-details)<br>
    4.1. [POST - `/api/v1/ads`](#post---apiv1ads-create-a-new-advertisement)<br>
    4.2. [GET - `/api/v1/ads/:ads_id`](#get---apiv1adsads_id-get-an-advertisement-by-id)
+5. [Enhancements](#enhancements)
+6. [Demonstration](#demonstration)
 
 <hr>
 
@@ -102,3 +104,34 @@
      curl --location 'http://127.0.0.1:8000/api/v1/ads/ads-9e4c9414-4cdb-4fb6-929e-6111c3b83ee9'
     ```
 
+# Enhancements
+
+- With this design, we can only run 1 service at the same time. Because if more than 1, the consistency of the data
+  will be affected. The root cause is that we need to process the advertisement data based on the priority value.
+- Can not scale the application horizontally.
+- Not ensure high availability.
+- Solutions:
+    - To enhance this feature, we can use a message queue system like RabbitMQ or Kafka to process the advertisement
+      data
+      asynchronously. In my opinion, I prefer RabbitMQ because it supports the `priority` feature.
+    - Split the application into 2 services: `API service` and `Worker service`.
+
+# Demonstration
+
+- My scenario is to make 200 requests to the API service to create 200 advertisements. The body of the request is
+  generated randomly.
+- In the logs, we can see that the worker pool processes the advertisement data based on the priority value.
+
+- I prepared a go script to make 200 requests to the API service. You can run the below command to start the script:
+    ```bash
+    go run ./test/main.go
+    ```
+
+- The logs of the API service:
+  ![api-logs](./assets/02.png)
+
+- You realize that the worker pool processes the advertisement data based on the priority value. The advertisement with
+  the lower priority value will be processed first. For each advertisement, I randomly sleep the worker for a few seconds to simulate the processing time.
+- The advertisement status will be updated through these states: `submitted`, `queued`, `processing` and finally `completed`.
+- This is the screenshot of the Advertisement table in the PostgreSQL database:
+  ![pg-database](./assets/03.png)
