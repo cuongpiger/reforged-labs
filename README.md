@@ -8,7 +8,8 @@
 2. [Deployment](#deployment)
 3. [Project details](#project-details)
 4. [API details](#api-details)<br>
-  4.1. [POST - `/api/v1/ads`](#post---apiv1ads-create-a-new-advertisement)
+  4.1. [POST - `/api/v1/ads`](#post---apiv1ads-create-a-new-advertisement)<br>
+  4.2. [GET - `/api/v1/ads/:ads_id`](#get---apiv1adsads_id-get-an-advertisement-by-id)
 
 <hr>
 
@@ -55,5 +56,19 @@
 
 
 # API details
-## POST - `/api/v1/ads`: Create a new advertisement.
+## POST - `/api/v1/ads`: Create a new advertisement
+- This feature workflow includes 2 parts:
+  - A memory priority queue to store the advertisement data. Assume that advertisement with lower priority value will be processed first.
+    - To implement this feature, I use the `container/heap` package in GoLang.
+    - GoLang Mutex is used to lock the queue when adding or removing an item.
+    - Signal is used to notify the worker when a new item is added to the queue.
+  - Worker pool to process the advertisement data.
+    - The worker pool is implemented using GoLang goroutines.
+    - The worker pool is started when the application starts.
+    - The worker pool will process the advertisement data whenever a new item is added to the queue.
+    - The worker pool will process the advertisement data based on the priority value.
+    - I use two design patterns: `Chain` and `WorkerPool` to implement this feature.
+
+## GET - `/api/v1/ads/:ads_id`: Get an advertisement by ID
+- The workflow simply retrieves the advertisement data from PostgreSQL database by advertisement ID.
 
