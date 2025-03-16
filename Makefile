@@ -3,8 +3,8 @@
 GO_CMD ?= "/Volumes/veronica/git-cuongpiger/go-env/go-1.24.1/go1.24.1/bin/go"
 DOCKER_CMD ?= "/usr/local/bin/docker"
 TAG ?= v0.0.0
-REGISTRY ?= "docker.io/manhcuong8499"
-CONTROLLER_IMG_TAG ?= "$(REGISTRY)/reforged-labs-api-service:$(TAG)"
+REGISTRY ?= "docker.io"
+CONTROLLER_IMG_TAG ?= "$(REGISTRY)/manhcuong8499/reforged-labs-api-service:$(TAG)"
 
 
 # CMD bin path for Linux machine
