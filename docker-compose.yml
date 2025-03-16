@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  database:
+    container_name: reforged-labs-db
+    image: postgres:12.8
+    restart: always
+    environment:
+      - POSTGRES_USER=reforged-admin
+      - POSTGRES_PASSWORD=reforged-admin-password
+      - POSTGRES_DB=reforged-api-service
+    ports:
+      - 5432:5432
+  api_service:
+    image: manhcuong8499/reforged-labs-api-service:v0.0.0-250316102218
+    container_name: reforged-api-service
+    restart: always
+    ports:
+      - "8000:8000"  # Maps container port 8000 to host
+    volumes:
+      - ./hack/api-service-config-file-dc.yaml:/workplace/api-service-config-file-dc.yaml  # Mount config file
+    command: ["--config-file", "/workplace/api-service-config-file-dc.yaml"]
+    environment:
+      - APP_ENV=production
+      - GIN_MODE=release
